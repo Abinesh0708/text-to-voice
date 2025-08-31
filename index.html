@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Podcast Generator - AI Voice Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #1a2a6c);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            background: linear-gradient(to right, #ff7e5f, #feb47b);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgba(25, 25, 35, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+
+        .chat-container {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 15px 20px;
+            border-radius: 18px;
+            line-height: 1.5;
+            position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #3498db, #1a5ca3);
+            align-self: flex-end;
+            border-bottom-right-radius: 5px;
+        }
+
+        .ai-message {
+            background: linear-gradient(135deg, #2c3e50, #1a2530);
+            align-self: flex-start;
+            border-bottom-left-radius: 5px;
+        }
+
+        .input-container {
+            display: flex;
+            padding: 20px;
+            background: rgba(30, 30, 40, 0.9);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        textarea {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(20, 20, 30, 0.8);
+            color: white;
+            font-size: 1rem;
+            resize: none;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            height: 60px;
+        }
+
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-left: 15px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 15px;
+            margin: 0 20px 15px 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-label {
+            font-weight: 600;
+            opacity: 0.8;
+            margin-right: -5px;
+        }
+
+        .voice-btn, .speed-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .voice-btn:hover, .speed-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .voice-btn.active, .speed-btn.active {
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+        }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .typing-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 15px 20px;
+            background: rgba(40, 40, 50, 0.7);
+            border-radius: 18px;
+            align-self: flex-start;
+            width: 120px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #ff7e5f;
+            border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        .message-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .user-avatar {
+            background: linear-gradient(135deg, #3498db, #1a5ca3);
+        }
+
+        .ai-avatar {
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                height: 75vh;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .controls {
+                gap: 10px;
+            }
+            
+            button {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-podcast"></i> PODCAST GENERATOR</h1>
+        <p>Transform your text into natural-sounding podcasts with AI voices</p>
+    </div>
+    
+    <div class="container">
+        <div class="chat-container" id="chat-container">
+            <div class="message ai-message">
+                <div class="message-header">
+                    <div class="avatar ai-avatar"><i class="fas fa-robot"></i></div>
+                    <span>Podcast Assistant</span>
+                </div>
+                <p>Hello! I'm your podcast generator. Enter any text and I'll convert it into a natural-sounding podcast. You can also choose different voices and adjust the speed.</p>
+            </div>
+            
+            <div class="message ai-message">
+                <div class="message-header">
+                    <div class="avatar ai-avatar"><i class="fas fa-robot"></i></div>
+                    <span>Podcast Assistant</span>
+                </div>
+                <p>Try entering a story, article, or any content you'd like to hear as a podcast!</p>
+            </div>
+        </div>
+        
+
+        <div class="input-container">
+            <textarea id="text-input" placeholder="Enter your text here..."></textarea>
+            <div class="controls">
+                <button id="speak-btn" title="Generate Podcast"><i class="fas fa-play"></i></button>
+                <button id="stop-btn" title="Stop Playback"><i class="fas fa-stop"></i></button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <div class="footer">
+        AI-Powered Podcast Generator
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const textInput = document.getElementById('text-input');
+            const speakBtn = document.getElementById('speak-btn');
+            const stopBtn = document.getElementById('stop-btn');
+            const chatContainer = document.getElementById('chat-container');
+            const voiceSelectButtons = document.querySelectorAll('.voice-btn');
+            const speedSelectButtons = document.querySelectorAll('.speed-btn');
+            
+            let voices = [];
+            let selectedVoice = 0;
+            let speechSpeed = 1;
+            
+            // Load available voices
+            function loadVoices() {
+                voices = speechSynthesis.getVoices();
+            }
+            
+            // Initial voice loading
+            loadVoices();
+            if (speechSynthesis.onvoiceschanged !== undefined) {
+                speechSynthesis.onvoiceschanged = loadVoices;
+            }
+            
+            // Add message to chat
+            function addMessage(text, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = isUser ? 'message user-message' : 'message ai-message';
+                
+                const messageHeader = document.createElement('div');
+                messageHeader.className = 'message-header';
+                
+                const avatar = document.createElement('div');
+                avatar.className = `avatar ${isUser ? 'user-avatar' : 'ai-avatar'}`;
+                avatar.innerHTML = isUser ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+                
+                const name = document.createElement('span');
+                name.textContent = isUser ? 'You' : 'Podcast Assistant';
+                
+                messageHeader.appendChild(avatar);
+                messageHeader.appendChild(name);
+                
+                const textElement = document.createElement('p');
+                textElement.textContent = text;
+                
+                messageDiv.appendChild(messageHeader);
+                messageDiv.appendChild(textElement);
+                
+                chatContainer.appendChild(messageDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            // Show typing indicator
+            function showTypingIndicator() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.id = 'typing-indicator';
+                
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'typing-dot';
+                    typingDiv.appendChild(dot);
+                }
+                
+                chatContainer.appendChild(typingDiv);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+            
+            // Remove typing indicator
+            function removeTypingIndicator() {
+                const typingIndicator = document.getElementById('typing-indicator');
+                if (typingIndicator) {
+                    typingIndicator.remove();
+                }
+            }
+            
+            // Speak function
+            function speak() {
+                const text = textInput.value.trim();
+                if (!text) return;
+                
+                // Add user message
+                addMessage(text, true);
+                
+                // Clear input
+                textInput.value = '';
+                
+                // Show typing indicator
+                showTypingIndicator();
+                
+                // Simulate AI processing time
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    
+                    // Add AI response
+                    addMessage("Generating your podcast now. Please listen to the playback below.");
+                    
+                    // Create speech utterance
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    
+                    // Set voice if available
+                    if (voices.length > 0) {
+                        utterance.voice = voices[selectedVoice];
+                    }
+                    
+                    // Set speech speed
+                    utterance.rate = speechSpeed;
+                    
+                    // Speak the text
+                    speechSynthesis.speak(utterance);
+                }, 1500);
+            }
+            
+            // Stop speaking
+            function stopSpeaking() {
+                speechSynthesis.cancel();
+            }
+            
+            // Event listeners
+            speakBtn.addEventListener('click', speak);
+            
+            stopBtn.addEventListener('click', stopSpeaking);
+            
+            textInput.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    speak();
+                }
+            });
+            
+            // Voice selection
+            voiceSelectButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    voiceSelectButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedVoice = parseInt(this.dataset.voiceIndex);
+                });
+            });
+            
+            // Speed selection
+            speedSelectButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    speedSelectButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                    speechSpeed = parseFloat(this.dataset.speed);
+                });
+            });
+
+            // Add a sample message for demo
+            setTimeout(() => {
+                addMessage("Try entering text like: 'Welcome to our podcast series on artificial intelligence. Today we'll explore how AI is transforming the way we work and live.'");
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
